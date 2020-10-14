@@ -4,13 +4,13 @@ import 'firebase/auth';
 
 const config = {
   apiKey: "AIzaSyDvaR-Ykneet-EZC8g0e5nkQRFQsFouYQg",
-    authDomain: "string-shop.firebaseapp.com",
-    databaseURL: "https://string-shop.firebaseio.com",
-    projectId: "string-shop",
-    storageBucket: "string-shop.appspot.com",
-    messagingSenderId: "1088444795502",
-    appId: "1:1088444795502:web:cac8e8ac63b8984f56b47f",
-    measurementId: "G-JL26YSX56X"
+  authDomain: "string-shop.firebaseapp.com",
+  databaseURL: "https://string-shop.firebaseio.com",
+  projectId: "string-shop",
+  storageBucket: "string-shop.appspot.com",
+  messagingSenderId: "1088444795502",
+  appId: "1:1088444795502:web:cac8e8ac63b8984f56b47f",
+  measurementId: "G-JL26YSX56X"
 };
 
 firebase.initializeApp(config);
@@ -40,23 +40,38 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
   return userRef;
 };
 
-
-export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
-
-  const collectionRef = firestore.collection(collectionKey); // CREATES COLLECTION USING THE COLLECTION KEY
+export const addCollectionAndDocuments = async (
+  collectionKey,
+  objectsToAdd
+) => {
+  const collectionRef = firestore.collection(collectionKey);
 
   const batch = firestore.batch();
-
   objectsToAdd.forEach(obj => {
+    const newDocRef = collectionRef.doc();
+    batch.set(newDocRef, obj);
+  });
 
-  const newDocRef = collectionRef.doc()
+  return await batch.commit();
+};
 
-  batch.set(newDocRef, obj);
+export const convertCollectionsSnapshotToMap = collections => {
+  const transformedCollection = collections.docs.map(doc => {
+    const { title, items } = doc.data();
 
-});
+    return {
+      routeName: encodeURI(title.toLowerCase()),
+      id: doc.id,
+      title,
+      items
+    };
+  });
 
-return await batch.commit();
-}
+  return transformedCollection.reduce((accumulator, collection) => {
+    accumulator[collection.title.toLowerCase()] = collection;
+    return accumulator;
+  }, {});
+};
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
